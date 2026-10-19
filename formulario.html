@@ -2,23 +2,109 @@
 <html lang="es">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Ingreso Noticias</title>
+        <link href="https://fonts.googleapis.com" rel="preconnect" />
+        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:ital,wght@0,600;0,700;1,600&amp;display=swap"
+            rel="stylesheet" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+            rel="stylesheet" />
+        <link rel="stylesheet" href="styles.css" />
     </head>
-    <body>
-        <form>
-            <label for="titulo">Título:</label>
-            <input type="text" id="titulo" name="titulo" required>
+    <body class="pagina-formulario">
+        <header class="encabezado">
+            <div class="encabezado-franja">
+                <div class="contenedor">
+                    <span class="punto-dorado"></span>
+                    <span class="cintillo">Órgano Oficial de Difusión Universitaria</span>
+                </div>
+            </div>
+            <div class="contenedor encabezado-marca">
+                <img src="logo.png" alt="Logo de la Universidad de la Sierra Sur" />
+                <div>
+                    <span class="cintillo">Universidad de la Sierra Sur</span>
+                    <a href="index.html" class="encabezado-titulo">GACETA UNSIS</a>
+                </div>
+            </div>
+        </header>
 
-            <label for="detalle">Detalle:</label>
-            <textarea id="detalle" name="detalle" required></textarea>
+        <main>
+            <div class="contenedor">
+                <div class="tarjeta">
+                    <div class="tarjeta-cabecera">
+                        <span class="cintillo">Redacción</span>
+                        <h1>Ingreso de noticias</h1>
+                        <p>Completa los campos para publicar una nueva noticia en la Gaceta.</p>
+                    </div>
 
-            <label for="fecha">Fecha:</label>
-            <input type="date" id="fecha" name="fecha" required>
+                    <form class="formulario" enctype="multipart/form-data">
+                        <div class="campo">
+                            <label for="titulo">Título</label>
+                            <input type="text" id="titulo" name="titulo" required
+                                placeholder="Escribe el título de la noticia">
+                        </div>
 
-            <button type="submit">Enviar</button>
-        </form>
+                        <div class="campo">
+                            <label for="detalle">Detalle</label>
+                            <textarea id="detalle" name="detalle" required rows="8"
+                                placeholder="Redacta el contenido de la noticia"></textarea>
+                        </div>
+
+                        <div class="campo">
+                            <label for="fecha">Fecha</label>
+                            <input type="date" id="fecha" name="fecha" required>
+                        </div>
+
+                        <div class="campo">
+                            <label for="imagen">Imagen <span class="opcional">(opcional)</span></label>
+                            <label class="campo-imagen">
+                                <span class="material-symbols-outlined">add_photo_alternate</span>
+                                <span class="texto-imagen" id="texto-imagen">Selecciona una imagen</span>
+                                <span class="ayuda-imagen">JPG, PNG o WEBP</span>
+                                <input type="file" id="imagen" name="imagen" accept="image/png, image/jpeg, image/webp">
+                            </label>
+                            <img id="vista-previa" class="vista-previa" alt="Vista previa de la imagen seleccionada">
+                        </div>
+
+                        <div class="acciones">
+                            <a href="index.html" class="boton-secundario">Cancelar</a>
+                            <button type="submit" class="boton-principal">
+                                <span class="material-symbols-outlined">send</span>
+                                Enviar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+
+        <footer class="pie">
+            <div class="contenedor">
+                © 2024 Universidad de la Sierra Sur. Todos los derechos reservados. SUNEO.
+            </div>
+        </footer>
         <script>
-            
+            const inputImagen = document.getElementById("imagen");
+            const vistaPrevia = document.getElementById("vista-previa");
+            const textoImagen = document.getElementById("texto-imagen");
+
+            inputImagen.addEventListener("change", () => {
+                const archivo = inputImagen.files[0];
+
+                if (!archivo) {
+                    vistaPrevia.classList.remove("visible");
+                    vistaPrevia.removeAttribute("src");
+                    textoImagen.textContent = "Selecciona una imagen";
+                    return;
+                }
+
+                vistaPrevia.src = URL.createObjectURL(archivo);
+                vistaPrevia.classList.add("visible");
+                textoImagen.textContent = archivo.name;
+            });
         </script>
     </body>
 </html>
