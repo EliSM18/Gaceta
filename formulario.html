@@ -40,22 +40,22 @@
                         <p>Completa los campos para publicar una nueva noticia en la Gaceta.</p>
                     </div>
 
-                    <form class="formulario" enctype="multipart/form-data">
+                    <form class="formulario">
                         <div class="campo">
-                            <label for="titulo">Título</label>
-                            <input type="text" id="titulo" name="titulo" required
+                            <label for="titulo_noticia">Título</label>
+                            <input type="text" id="titulo_noticia" name="titulo" required
                                 placeholder="Escribe el título de la noticia">
                         </div>
 
                         <div class="campo">
-                            <label for="detalle">Detalle</label>
-                            <textarea id="detalle" name="detalle" required rows="8"
+                            <label for="detalle_noticia">Detalle</label>
+                            <textarea id="detalle_noticia" name="detalle" required rows="8"
                                 placeholder="Redacta el contenido de la noticia"></textarea>
                         </div>
 
                         <div class="campo">
-                            <label for="fecha">Fecha</label>
-                            <input type="date" id="fecha" name="fecha" required>
+                            <label for="fecha_noticia">Fecha</label>
+                            <input type="date" id="fecha_noticia" name="fecha" required>
                         </div>
 
                         <div class="campo">
@@ -63,7 +63,7 @@
                             <label class="campo-imagen">
                                 <span class="material-symbols-outlined">add_photo_alternate</span>
                                 <span class="texto-imagen" id="texto-imagen">Selecciona una imagen</span>
-                                <span class="ayuda-imagen">JPG, PNG o WEBP</span>
+                                <span class="ayuda-imagen">La imagen se agregará posteriormente</span>
                                 <input type="file" id="imagen" name="imagen" accept="image/png, image/jpeg, image/webp">
                             </label>
                             <img id="vista-previa" class="vista-previa" alt="Vista previa de la imagen seleccionada">
@@ -87,9 +87,53 @@
             </div>
         </footer>
         <script>
+            const API_URL = "https://3qxxmb2oa6sxoprodflp47cmb40hmich.lambda-url.us-east-2.on.aws/"
             const inputImagen = document.getElementById("imagen");
             const vistaPrevia = document.getElementById("vista-previa");
             const textoImagen = document.getElementById("texto-imagen");
+
+            try {
+                const formulario = document.querySelector(".formulario");
+                formulario.addEventListener("submit", async (event) => {
+                    event.preventDefault();
+
+                    const botonEnviar = formulario.querySelector('button[type="submit"]');
+                    const datosNoticia = {
+                        titulo: document.getElementById("titulo_noticia").value.trim(),
+                        descripcion: document.getElementById("detalle_noticia").value.trim(),
+                        fecha: document.getElementById("fecha_noticia").value,
+                    };
+
+                    botonEnviar.disabled = true;
+
+                    try {
+                        const response = await fetch(API_URL, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(datosNoticia),
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`Error HTTP: ${response.status}`);
+                        }
+
+                        alert("Noticia enviada correctamente.");
+                        formulario.reset();
+                        vistaPrevia.classList.remove("visible");
+                        vistaPrevia.removeAttribute("src");
+                        textoImagen.textContent = "Selecciona una imagen";
+                    } catch (error) {
+                        console.error("Error al enviar la noticia:", error);
+                        alert("Error al enviar la noticia. Por favor, inténtalo de nuevo.");
+                    } finally {
+                        botonEnviar.disabled = false;
+                    }
+                });
+            } catch (error) {
+                console.error("Error al inicializar el formulario:", error);
+            }
 
             inputImagen.addEventListener("change", () => {
                 const archivo = inputImagen.files[0];
