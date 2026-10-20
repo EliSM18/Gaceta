@@ -131,6 +131,39 @@
                         botonEnviar.disabled = false;
                     }
                 });
+
+                const endpointUrlFirmada = "https://wutbn6erqbcvm2ppksn6pmgiyy0fdtcw.lambda-url.us-east-2.on.aws/";
+                const parametros = new URLSearchParams({
+                    file: file.name
+                });
+
+                const res = await fetch(
+                    `${endpointUrlFirmada}?${parametros.toString()}`
+                );
+
+                if (!res.ok) {
+                    const errorTexto = await res.text();
+                    throw new Error(
+                        `Error al generar URL (${res.status}): ${errorTexto}`
+                    );
+                }
+
+                const datos = await res.json();
+                const {
+                    uploadURL,
+                    key,
+                    contentType
+                } = datos;
+
+                if (!uploadURL) {
+                    throw new Error(
+                        "La Lambda no devolvió uploadUrl"
+                    );
+                }
+
+                btnEnviar.textContent = "Subiendo imagen";
+                
+
             } catch (error) {
                 console.error("Error al inicializar el formulario:", error);
             }
