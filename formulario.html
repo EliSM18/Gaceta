@@ -87,86 +87,96 @@
             </div>
         </footer>
         <script>
-            const API_URL = "https://3qxxmb2oa6sxoprodflp47cmb40hmich.lambda-url.us-east-2.on.aws/"
+            const API_URL = "https://3qxxmb2oa6sxoprodflp47cmb40hmich.lambda-url.us-east-2.on.aws/";
+            const ENDPOINT_URL_FIRMADA = "https://wutbn6erqbcvm2ppksn6pmgiyy0fdtcw.lambda-url.us-east-2.on.aws/";
             const inputImagen = document.getElementById("imagen");
             const vistaPrevia = document.getElementById("vista-previa");
             const textoImagen = document.getElementById("texto-imagen");
 
-            try {
-                const formulario = document.querySelector(".formulario");
-                formulario.addEventListener("submit", async (event) => {
-                    event.preventDefault();
+            const formulario = document.querySelector(".formulario");
 
-                    const botonEnviar = formulario.querySelector('button[type="submit"]');
+            formulario.addEventListener("submit", async (event) => {
+                event.preventDefault();
+
+                const botonEnviar = formulario.querySelector('button[type="submit"]');
+                const archivo = inputImagen.files[0];
+                let imagenNoticia = null;
+
+                botonEnviar.disabled = true;
+
+                try {
+                    if (archivo) {
+                        botonEnviar.textContent = "Preparando imagen...";
+
+                        const parametros = new URLSearchParams({ file: archivo.name });
+                        const respuestaUrl = await fetch(
+                            `${ENDPOINT_URL_FIRMADA}?${parametros.toString()}`
+                        );
+
+                        if (!respuestaUrl.ok) {
+                            const errorTexto = await respuestaUrl.text();
+                            throw new Error(
+                                `Error al generar URL (${respuestaUrl.status}): ${errorTexto}`
+                            );
+                        }
+
+                        const { uploadUrl, imageUrl, contentType } = await respuestaUrl.json();
+
+                        if (!uploadUrl || !imageUrl) {
+                            throw new Error("La Lambda no devolvió la URL o la clave de la imagen");
+                        }
+
+                        botonEnviar.textContent = "Subiendo imagen...";
+                        const respuestaS3 = await fetch(uploadUrl, {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": contentType || archivo.type,
+                            },
+                            body: archivo,
+                        });
+
+                        if (!respuestaS3.ok) {
+                            throw new Error(
+                                `Error al subir la imagen a S3 (${respuestaS3.status})`
+                            );
+                        }
+
+                        imagenNoticia = imageUrl;
+                    }
+
+                    botonEnviar.textContent = "Enviando...";
                     const datosNoticia = {
                         titulo_noticia: document.getElementById("titulo_noticia").value.trim(),
                         detalle_noticia: document.getElementById("detalle_noticia").value.trim(),
                         fecha_noticia: document.getElementById("fecha_noticia").value,
+                        imagen_noticia: imagenNoticia,
                     };
 
-                    botonEnviar.disabled = true;
+                    const response = await fetch(API_URL, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(datosNoticia),
+                    });
 
-                    try {
-                        const response = await fetch(API_URL, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify(datosNoticia),
-                        });
-
-                        if (!response.ok) {
-                            throw new Error(`Error HTTP: ${response.status}`);
-                        }
-
-                        alert("Noticia enviada correctamente.");
-                        formulario.reset();
-                        vistaPrevia.classList.remove("visible");
-                        vistaPrevia.removeAttribute("src");
-                        textoImagen.textContent = "Selecciona una imagen";
-                    } catch (error) {
-                        console.error("Error al enviar la noticia:", error);
-                        alert("Error al enviar la noticia. Por favor, inténtalo de nuevo.");
-                    } finally {
-                        botonEnviar.disabled = false;
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP al guardar la noticia: ${response.status}`);
                     }
-                });
 
-                const endpointUrlFirmada = "https://wutbn6erqbcvm2ppksn6pmgiyy0fdtcw.lambda-url.us-east-2.on.aws/";
-                const parametros = new URLSearchParams({
-                    file: file.name
-                });
-
-                const res = await fetch(
-                    `${endpointUrlFirmada}?${parametros.toString()}`
-                );
-
-                if (!res.ok) {
-                    const errorTexto = await res.text();
-                    throw new Error(
-                        `Error al generar URL (${res.status}): ${errorTexto}`
-                    );
+                    alert("Noticia enviada correctamente.");
+                    formulario.reset();
+                    vistaPrevia.classList.remove("visible");
+                    vistaPrevia.removeAttribute("src");
+                    textoImagen.textContent = "Selecciona una imagen";
+                } catch (error) {
+                    console.error("Error al enviar la noticia:", error);
+                    alert(`Error al enviar la noticia. ${error.message}`);
+                } finally {
+                    botonEnviar.disabled = false;
+                    botonEnviar.textContent = "Enviar";
                 }
-
-                const datos = await res.json();
-                const {
-                    uploadURL,
-                    key,
-                    contentType
-                } = datos;
-
-                if (!uploadURL) {
-                    throw new Error(
-                        "La Lambda no devolvió uploadUrl"
-                    );
-                }
-
-                btnEnviar.textContent = "Subiendo imagen";
-                
-
-            } catch (error) {
-                console.error("Error al inicializar el formulario:", error);
-            }
+            });
 
             inputImagen.addEventListener("change", () => {
                 const archivo = inputImagen.files[0];

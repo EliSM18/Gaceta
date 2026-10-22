@@ -135,7 +135,8 @@
                     articulo.className = "noticia flex flex-col gap-space-md bg-surface-container-lowest rounded-lg shadow-[0_1px_8px_rgba(0,0,0,0.04)] overflow-hidden";
 
                     articulo.innerHTML = `
-                        <img src="image.jpg" alt="${noticia.titulo_noticia || 'Noticia'}"
+                        <img src="${noticia.imagen_noticia || 'image.jpg'}" alt="${noticia.titulo_noticia || 'Noticia'}"
+                            onerror="this.onerror=null; this.src='image.jpg';"
                             class="w-full h-64 object-cover" />
                         <div class="flex flex-col gap-space-sm px-space-lg pb-space-lg">
                             <h2 class="font-headline-md text-headline-md text-primary">${noticia.titulo_noticia || 'Noticia'}</h2>
